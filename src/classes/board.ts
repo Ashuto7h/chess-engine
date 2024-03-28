@@ -1,15 +1,24 @@
+import { openDB } from 'idb';
 import { cloneDeep } from 'lodash';
 import { INITIAL_PIECE_MAP } from '../constants/piece-map';
 import { SCORE_MAP } from '../constants/score-card';
+import { PieceId } from '../enums/piece-id.enum';
 import { Move } from '../interfaces/move';
+import { MoveHistory } from '../interfaces/move-history';
 import { Position } from '../interfaces/position';
+import { Bishop } from './bishop';
 import { King } from './king';
+import { Knight } from './knight';
+import { Pawn } from './pawn';
 import { Piece } from './piece';
+import { Queen } from './queen';
+import { Rook } from './rook';
+
 export class Board {
   state: (Piece | null)[][];
-
   threatsMap: number[][][][];
   kingPosition: { white: Position | undefined; black: Position | undefined };
+  movesHistory: MoveHistory[] = [];
 
   constructor(state?: (Piece | null)[][], public isAITurn = false) {
     this.state = state ?? this.initBoardState();
@@ -109,8 +118,17 @@ export class Board {
     return distance;
   }
 
-  move({ currentPosition, movePosition }: Move) {
-    this.state[movePosition.x][movePosition.y] = this.state[currentPosition.x][currentPosition.y];
+  async move({ currentPosition, movePosition }: Move) {
+    const currentPiece = this.state[currentPosition.x][currentPosition.y];
+    const movePiece = this.state[movePosition.x][movePosition.y];
+    await this.saveHistory({
+      currentPosition,
+      movePosition,
+      currentPiece: currentPiece?.id,
+      movePiece: movePiece?.id,
+    });
+
+    this.state[movePosition.x][movePosition.y] = currentPiece;
     this.state[currentPosition.x][currentPosition.y] = null;
     this.state = cloneDeep(this.state);
     this.isAITurn = !this.isAITurn;
@@ -132,5 +150,132 @@ export class Board {
       }
     }
     return false;
+  }
+
+  public async undoLastMove() {
+    const lastMoveCursor = await this.getLastMoveCursor();
+    if (lastMoveCursor) {
+      const { movePosition, currentPosition, currentPiece, movePiece } = lastMoveCursor.value;
+      this.state[currentPosition.x][currentPosition.y] = this.createPiece(currentPiece);
+      this.state[movePosition.x][movePosition.y] = this.createPiece(movePiece);
+      this.state = cloneDeep(this.state);
+      this.isAITurn = !this.isAITurn;
+      this.threatsMap = this.initThreatsMap();
+      this.kingPosition = { white: undefined, black: undefined };
+      await lastMoveCursor.delete();
+    }
+  }
+
+  private createPiece(id: PieceId): Piece | null {
+    switch (id) {
+      case PieceId.BLACK_BISHOP_1:
+        return new Bishop(PieceId.BLACK_BISHOP_1, 'black');
+      case PieceId.BLACK_BISHOP_2:
+        return new Bishop(PieceId.BLACK_BISHOP_2, 'black');
+      case PieceId.WHITE_BISHOP_1:
+        return new Bishop(PieceId.WHITE_BISHOP_1, 'white');
+      case PieceId.WHITE_BISHOP_2:
+        return new Bishop(PieceId.WHITE_BISHOP_2, 'white');
+      case PieceId.BLACK_KNIGHT_1:
+        return new Knight(PieceId.BLACK_KNIGHT_1, 'black');
+      case PieceId.BLACK_KNIGHT_2:
+        return new Knight(PieceId.BLACK_KNIGHT_2, 'black');
+      case PieceId.WHITE_KNIGHT_1:
+        return new Knight(PieceId.WHITE_KNIGHT_1, 'white');
+      case PieceId.WHITE_KNIGHT_2:
+        return new Knight(PieceId.WHITE_KNIGHT_2, 'white');
+      case PieceId.BLACK_ROOK_1:
+        return new Rook(PieceId.BLACK_ROOK_1, 'black');
+      case PieceId.BLACK_ROOK_2:
+        return new Rook(PieceId.BLACK_ROOK_2, 'black');
+      case PieceId.WHITE_ROOK_1:
+        return new Rook(PieceId.WHITE_ROOK_1, 'white');
+      case PieceId.WHITE_ROOK_2:
+        return new Rook(PieceId.WHITE_ROOK_2, 'white');
+      case PieceId.BLACK_QUEEN:
+        return new Queen(PieceId.BLACK_QUEEN, 'black');
+      case PieceId.WHITE_QUEEN:
+        return new Queen(PieceId.WHITE_QUEEN, 'white');
+      case PieceId.BLACK_KING:
+        return new King(PieceId.BLACK_KING, 'black');
+      case PieceId.WHITE_KING:
+        return new King(PieceId.WHITE_KING, 'white');
+      case PieceId.BLACK_PAWN_1:
+        return new Pawn(PieceId.BLACK_PAWN_1, 'black');
+      case PieceId.BLACK_PAWN_2:
+        return new Pawn(PieceId.BLACK_PAWN_2, 'black');
+      case PieceId.BLACK_PAWN_3:
+        return new Pawn(PieceId.BLACK_PAWN_3, 'black');
+      case PieceId.BLACK_PAWN_4:
+        return new Pawn(PieceId.BLACK_PAWN_4, 'black');
+      case PieceId.BLACK_PAWN_5:
+        return new Pawn(PieceId.BLACK_PAWN_5, 'black');
+      case PieceId.BLACK_PAWN_6:
+        return new Pawn(PieceId.BLACK_PAWN_6, 'black');
+      case PieceId.BLACK_PAWN_7:
+        return new Pawn(PieceId.BLACK_PAWN_7, 'black');
+      case PieceId.BLACK_PAWN_8:
+        return new Pawn(PieceId.BLACK_PAWN_8, 'black');
+      case PieceId.WHITE_PAWN_1:
+        return new Pawn(PieceId.WHITE_PAWN_1, 'white');
+      case PieceId.WHITE_PAWN_2:
+        return new Pawn(PieceId.WHITE_PAWN_2, 'white');
+      case PieceId.WHITE_PAWN_3:
+        return new Pawn(PieceId.WHITE_PAWN_3, 'white');
+      case PieceId.WHITE_PAWN_4:
+        return new Pawn(PieceId.WHITE_PAWN_4, 'white');
+      case PieceId.WHITE_PAWN_5:
+        return new Pawn(PieceId.WHITE_PAWN_5, 'white');
+      case PieceId.WHITE_PAWN_6:
+        return new Pawn(PieceId.WHITE_PAWN_6, 'white');
+      case PieceId.WHITE_PAWN_7:
+        return new Pawn(PieceId.WHITE_PAWN_7, 'white');
+      case PieceId.WHITE_PAWN_8:
+        return new Pawn(PieceId.WHITE_PAWN_8, 'white');
+      default:
+        return null;
+    }
+  }
+
+  private async getDbTransaction() {
+    if (!('indexedDB' in window)) {
+      console.error("This browser doesn't support IndexedDB");
+      return;
+    }
+
+    const db = await openDB('chess', 1, {
+      upgrade: (db) => {
+        if (!db.objectStoreNames.contains('movesHistory')) {
+          db.createObjectStore('movesHistory', { keyPath: 'id', autoIncrement: true });
+        }
+      },
+    });
+    return db.transaction('movesHistory', 'readwrite');
+  }
+
+  private async saveHistory({ currentPosition, movePosition }: MoveHistory) {
+    const piece = this.state[movePosition.x][movePosition.y]?.id;
+
+    const transaction = await this.getDbTransaction();
+
+    if (!transaction) {
+      return;
+    }
+
+    await Promise.all([
+      await transaction.store.add({ currentPosition, movePosition, piece }),
+      transaction.done,
+    ]);
+  }
+
+  private async getLastMoveCursor() {
+    const transaction = await this.getDbTransaction();
+
+    if (!transaction) {
+      return;
+    }
+
+    const cursor = await transaction.store.openCursor(null, 'prev');
+    return cursor;
   }
 }

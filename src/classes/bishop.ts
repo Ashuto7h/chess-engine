@@ -3,9 +3,10 @@ import { Piece } from './piece';
 import { Position } from '../interfaces/position';
 import { Board } from './board';
 import { SCORE_MAP } from '../constants/score-card';
+import { PieceId } from '../enums/piece-id.enum';
 
 export class Bishop extends Piece {
-  constructor(public id: string, public color: 'white' | 'black') {
+  constructor(public id: PieceId, public color: 'white' | 'black') {
     super(id, color, 'bishop');
   }
 

@@ -1,4 +1,5 @@
 import { SCORE_MAP } from '../constants/score-card';
+import { PieceId } from '../enums/piece-id.enum';
 import { Move } from '../interfaces/move';
 import { Position } from '../interfaces/position';
 import { Board } from './board';
@@ -8,7 +9,7 @@ export class Pawn extends Piece {
   i = 0;
   validMoves: Move[] = [];
 
-  constructor(id: string, color: 'white' | 'black') {
+  constructor(id: PieceId, color: 'white' | 'black') {
     super(id, color, 'pawn');
   }
 

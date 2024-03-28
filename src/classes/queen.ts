@@ -1,11 +1,12 @@
 import { SCORE_MAP } from '../constants/score-card';
+import { PieceId } from '../enums/piece-id.enum';
 import { Move } from '../interfaces/move';
 import { Position } from '../interfaces/position';
 import { Board } from './board';
 import { Piece } from './piece';
 
 export class Queen extends Piece {
-  constructor(public id: string, public color: 'white' | 'black') {
+  constructor(public id: PieceId, public color: 'white' | 'black') {
     super(id, color, 'queen');
   }
 

@@ -14,7 +14,7 @@ export const useGameBoard = (board: Board) => {
     : null;
 
   const playAsAI = useCallback(() => {
-    setTimeout(() => {
+    setTimeout(async () => {
       const moves: Move[] = [];
       for (let i = 0; i < 8; i++) {
         for (let j = 0; j < 8; j++) {
@@ -27,7 +27,7 @@ export const useGameBoard = (board: Board) => {
 
       moves.sort((a, b) => b.score - a.score);
       console.log('bestMoves: ', moves.slice(0, 3));
-      board.move(moves[0]);
+      await board.move(moves[0]);
       setIsLoading(false);
     }, 1000);
   }, []);
@@ -49,13 +49,13 @@ export const useGameBoard = (board: Board) => {
     setHighlightMoves(moves);
   };
 
-  const movePiece = (move: Move) => {
-    board.move(move);
+  const movePiece = async (move: Move) => {
+    await board.move(move);
     setSelectedPosition(null);
     setHighlightMoves([]);
   };
 
-  const handleClick = (clickedPiece: Piece | null, clickPosition: Position) => {
+  const handleClick = async (clickedPiece: Piece | null, clickPosition: Position) => {
     if (isLoading) {
       return;
     }
@@ -66,7 +66,7 @@ export const useGameBoard = (board: Board) => {
     );
 
     if (clickedMove) {
-      movePiece(clickedMove);
+      await movePiece(clickedMove);
       return;
     }
     if (clickedPiece) {
