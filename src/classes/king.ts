@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash';
 import { SCORE_MAP } from '../constants/score-card';
 import { Move } from '../interfaces/move';
 import { Position } from '../interfaces/position';
@@ -32,9 +33,7 @@ export class King extends Piece {
         const piece = board.state[moveX][moveY].piece;
         if (!piece || this.isEnemyPiece(piece)) {
           const score = this.calculateMoveScore(currentPosition, movePosition, board);
-          console.log('ischeck in position 2');
-
-          if (!this.isCheckInPosition(movePosition, board)) {
+          if (!this.isCheckInPosition(currentPosition, movePosition, board)) {
             validMoves.push({ currentPosition, movePosition, score });
           }
         }
@@ -63,21 +62,8 @@ export class King extends Piece {
 
     for (const [dX, dY] of moves) {
       const piece = board.state[moveX][moveY].piece;
-      if (moveX === 6 && moveY === 2)
-        console.log(
-          dx,
-          dy,
-          dX,
-          dY,
-          moveX,
-          moveY,
-          !piece,
-          piece ? this.isEnemyPiece(piece) : false,
-          piece,
-        );
       if (dx === dX && dy === dY && (!piece || this.isEnemyPiece(piece))) {
-        console.log('ischeck in position 1');
-        return !this.isCheckInPosition(movePosition, board);
+        return !this.isCheckInPosition(currentPosition, movePosition, board);
       }
     }
 
@@ -107,13 +93,22 @@ export class King extends Piece {
     return parseFloat(score.toFixed(2));
   }
 
-  private isCheckInPosition(position: Position, board: Board) {
+  public isCheckInPosition(currentPosition: Position, movePosition: Position, board: Board) {
+    const updateBoard = new Board(cloneDeep(board.state), board.isAITurn);
+    updateBoard.state[movePosition.x][movePosition.y].piece =
+      updateBoard.state[currentPosition.x][currentPosition.y].piece;
+    updateBoard.state[currentPosition.x][currentPosition.y].piece = null;
+
     for (let i = 0; i < 8; i++) {
       for (let j = 0; j < 8; j++) {
-        const piece = board.state[i][j].piece;
+        const piece = updateBoard.state[i][j].piece;
         if (piece && this.isEnemyPiece(piece)) {
-          console.log('from', { x: i, y: j }, 'to', { x: position.x, y: position.y });
-          if (piece.canMoveToPosition({ x: i, y: j }, { x: position.x, y: position.y }, board)) {
+          const canCapture = piece.canMoveToPosition(
+            { x: i, y: j },
+            { x: movePosition.x, y: movePosition.y },
+            updateBoard,
+          );
+          if (canCapture) {
             return true;
           }
         }

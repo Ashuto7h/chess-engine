@@ -41,7 +41,7 @@ export function GameBoard({ board }: GameBoardProps) {
                   onClick={() => handleClick(piece, { x: i, y: j })}>
                   <span className="piece-icon">{icon}</span>
                   {<span className="coordinate">{debug ? `${i}${j}:` : ''}</span>}
-                  {debug && highlight && <span className="score">{highlight.score}</span>}
+                  <span className="score">{debug && highlight ? highlight.score : ''}</span>
                   <span className="piece-id">{debug ? piece?.id : ''}</span>
                 </div>
               </Col>

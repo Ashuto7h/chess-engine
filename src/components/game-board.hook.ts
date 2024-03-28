@@ -29,7 +29,7 @@ export const useGameBoard = (board: Board) => {
       console.log('bestMoves: ', moves.slice(0, 3));
       board.move(moves[0]);
       setIsLoading(false);
-    }, 2000);
+    }, 1000);
   }, []);
 
   useEffect(() => {
@@ -37,9 +37,8 @@ export const useGameBoard = (board: Board) => {
       return;
     }
 
-    setIsLoading(true);
-
     if (!debug) {
+      setIsLoading(true);
       playAsAI();
     }
   }, [board, board.isAITurn, debug, playAsAI]);
@@ -57,6 +56,10 @@ export const useGameBoard = (board: Board) => {
   };
 
   const handleClick = (clickedPiece: Piece | null, clickPosition: Position) => {
+    if (isLoading) {
+      return;
+    }
+
     const clickedMove = highlightMoves.find(
       ({ movePosition }) =>
         movePosition.x === clickPosition.x && movePosition.y === clickPosition.y,

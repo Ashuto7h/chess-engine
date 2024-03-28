@@ -6,24 +6,21 @@ import { Piece } from './piece';
 
 export class Pawn extends Piece {
   i = 0;
+  validMoves: Move[] = [];
+
   constructor(id: string, color: 'white' | 'black') {
     super(id, color, 'pawn');
   }
 
   getValidMoves(currentPosition: Position, board: Board): Move[] {
+    this.validMoves = [];
     const { x: currentX, y: currentY } = currentPosition;
-    const validMoves: Move[] = [];
-
     // Check if pawn can move one step forward
     const moveX = currentX + (this.color === 'white' ? -1 : 1);
     const oneStepForwardPosition = { x: moveX, y: currentY };
 
     if (!board.state[oneStepForwardPosition.x][oneStepForwardPosition.y].piece) {
-      validMoves.push({
-        currentPosition,
-        movePosition: oneStepForwardPosition,
-        score: this.calculateMoveScore(currentPosition, oneStepForwardPosition, board),
-      });
+      this.addValidMove(currentPosition, oneStepForwardPosition, board);
     }
 
     // Check if pawn can move two steps forward
@@ -37,11 +34,7 @@ export class Pawn extends Piece {
       };
 
       if (!board.state[twoStepsForwardPosition.x][twoStepsForwardPosition.y].piece) {
-        validMoves.push({
-          currentPosition,
-          movePosition: twoStepsForwardPosition,
-          score: this.calculateMoveScore(currentPosition, twoStepsForwardPosition, board),
-        });
+        this.addValidMove(currentPosition, twoStepsForwardPosition, board);
       }
     }
 
@@ -63,41 +56,32 @@ export class Pawn extends Piece {
       }
       const piece = board.state[movePosition.x][movePosition.y].piece;
       if (piece && this.isEnemyPiece(piece)) {
-        validMoves.push({
-          currentPosition,
-          movePosition,
-          score: this.calculateMoveScore(currentPosition, movePosition, board),
-        });
+        this.addValidMove(currentPosition, movePosition, board);
       }
     });
 
-    return validMoves;
-  }
-
-  private isPromotable(x: number) {
-    if ((this.color === 'white' && x === 7) || (this.color === 'black' && x === 0)) {
-      return true;
-    }
-    return false;
+    return this.validMoves;
   }
 
   canMoveToPosition(currentPosition: Position, movePosition: Position, board: Board): boolean {
     const { x: currentX, y: currentY } = currentPosition;
     const { x: moveX, y: moveY } = movePosition;
     const piece = board.state[moveX][moveY].piece;
-    if (moveY === currentY) {
+
+    if (moveY === currentY && Math.abs(moveY - currentY) === 1) {
       return !piece;
-    } else {
-      if (
-        Math.abs(moveY - currentY) === 1 &&
-        piece &&
-        this.isEnemyPiece(piece) &&
-        ((this.color === 'white' && moveX - currentX === -1) ||
-          (this.color === 'black' && moveX - currentX === 1))
-      ) {
-        return true;
-      }
     }
+
+    if (
+      Math.abs(moveY - currentY) === 1 &&
+      piece &&
+      this.isEnemyPiece(piece) &&
+      ((this.color === 'white' && moveX - currentX === -1) ||
+        (this.color === 'black' && moveX - currentX === 1))
+    ) {
+      return !board.isCheckOnMove(currentPosition, movePosition, board);
+    }
+
     return false;
   }
 
@@ -125,5 +109,22 @@ export class Pawn extends Piece {
       score += 20;
     }
     return parseFloat(score.toPrecision(2));
+  }
+
+  private isPromotable(x: number) {
+    if ((this.color === 'white' && x === 7) || (this.color === 'black' && x === 0)) {
+      return true;
+    }
+    return false;
+  }
+
+  private addValidMove(currentPosition: Position, movePosition: Position, board: Board) {
+    if (!board.isCheckOnMove(currentPosition, movePosition, board)) {
+      this.validMoves.push({
+        currentPosition,
+        movePosition: movePosition,
+        score: this.calculateMoveScore(currentPosition, movePosition, board),
+      });
+    }
   }
 }

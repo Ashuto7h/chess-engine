@@ -1,9 +1,5 @@
-import { Piece } from "./piece";
+import { Piece } from './piece';
 
 export class Cell {
-  constructor(public x: number, public y: number, public piece: Piece | null) {}
-
-  get isWhite() {
-    return !!((this.x + this.y) % 2);
-  }
+  constructor(public piece: Piece | null) {}
 }

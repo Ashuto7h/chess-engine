@@ -13,11 +13,9 @@ export class Bishop extends Piece {
     const { x: currentX, y: currentY } = currentPosition;
     const validMoves: Move[] = [];
 
-    console.log('getting downright');
     // Check diagonally downward and to the right
     for (let x = currentX + 1, y = currentY + 1; x < 8 && y < 8; x++, y++) {
       const movePosition = { x, y };
-      console.log({ movePosition });
       const piece = board.state[x][y].piece;
       const score = this.calculateMoveScore(currentPosition, movePosition, board);
       if (piece) {
@@ -29,7 +27,6 @@ export class Bishop extends Piece {
       validMoves.push({ currentPosition, movePosition, score });
     }
 
-    console.log('getting downleft');
     // Check diagonally downward and to the left
     for (let x = currentX + 1, y = currentY - 1; x < 8 && y >= 0; x++, y--) {
       const movePosition = { x, y };
@@ -43,7 +40,6 @@ export class Bishop extends Piece {
       }
       validMoves.push({ currentPosition, movePosition, score });
     }
-    console.log('getting upright');
 
     // Check diagonally upward and to the right
     for (let x = currentX - 1, y = currentY + 1; x >= 0 && y < 8; x--, y++) {
@@ -58,7 +54,6 @@ export class Bishop extends Piece {
       }
       validMoves.push({ currentPosition, movePosition, score });
     }
-    console.log('getting upleft');
 
     // Check diagonally upward and to the left
     for (let x = currentX - 1, y = currentY - 1; x >= 0 && y >= 0; x--, y--) {
@@ -92,7 +87,6 @@ export class Bishop extends Piece {
         x !== moveX && y !== moveY;
         x += xDirection, y += yDirection
       ) {
-        console.log({ x, y, moveX, moveY, xDirection, yDirection, currentX, currentY });
         if (board.state[x][y].piece) {
           return false;
         }
@@ -112,7 +106,6 @@ export class Bishop extends Piece {
       score += SCORE_MAP[targetPiece.type];
     }
 
-    console.log({ oppositeKingPosition });
     if (
       oppositeKingPosition &&
       this.canMoveToPosition(currentPosition, oppositeKingPosition, board)

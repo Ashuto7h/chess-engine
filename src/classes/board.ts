@@ -4,6 +4,7 @@ import { SCORE_MAP } from '../constants/score-card';
 import { Move } from '../interfaces/move';
 import { Position } from '../interfaces/position';
 import { Cell } from './cell';
+import { King } from './king';
 export class Board {
   state: Cell[][];
 
@@ -22,13 +23,14 @@ export class Board {
         Array.from({ length: 8 }, () => Array.from({ length: 8 }, () => Infinity)),
       ),
     );
+
   private initBoard() {
     const cells: Cell[][] = [[]];
 
     for (let i = 0; i < 8; i++) {
       cells[i] = [];
       for (let j = 0; j < 8; j++) {
-        cells[i].push(new Cell(i, j, INITIAL_PIECE_MAP[i][j]));
+        cells[i].push(new Cell(INITIAL_PIECE_MAP[i][j]));
       }
     }
 
@@ -124,5 +126,21 @@ export class Board {
     this.isAITurn = !this.isAITurn;
     this.threatsMap = this.initThreatsMap();
     this.kingPosition = { white: undefined, black: undefined };
+  }
+
+  public isCheckOnMove(currentPosition: Position, movePosition: Position, board: Board) {
+    const piece = board.state[currentPosition.x][currentPosition.y].piece;
+    if (piece) {
+      const { x: kingX, y: kingY } =
+        board.kingPosition[piece.color] ?? board.getKingPosition(piece.color) ?? {};
+      if (kingX !== undefined && kingY !== undefined) {
+        const king: King = board.state[kingX][kingY].piece as King;
+        const updatedBoard = new Board(cloneDeep(board.state), board.isAITurn);
+        updatedBoard.state[movePosition.x][movePosition.y].piece = piece;
+        updatedBoard.state[currentPosition.x][currentPosition.y].piece = null;
+        return king.isCheckInPosition(currentPosition, currentPosition, updatedBoard);
+      }
+    }
+    return false;
   }
 }
