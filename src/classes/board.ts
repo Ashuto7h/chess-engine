@@ -3,16 +3,16 @@ import { INITIAL_PIECE_MAP } from '../constants/piece-map';
 import { SCORE_MAP } from '../constants/score-card';
 import { Move } from '../interfaces/move';
 import { Position } from '../interfaces/position';
-import { Cell } from './cell';
 import { King } from './king';
+import { Piece } from './piece';
 export class Board {
-  state: Cell[][];
+  state: (Piece | null)[][];
 
   threatsMap: number[][][][];
   kingPosition: { white: Position | undefined; black: Position | undefined };
 
-  constructor(state?: Cell[][], public isAITurn = false) {
-    this.state = state ?? this.initBoard();
+  constructor(state?: (Piece | null)[][], public isAITurn = false) {
+    this.state = state ?? this.initBoardState();
     this.threatsMap = this.initThreatsMap();
     this.kingPosition = { white: { x: 7, y: 3 }, black: { x: 0, y: 4 } };
   }
@@ -24,17 +24,8 @@ export class Board {
       ),
     );
 
-  private initBoard() {
-    const cells: Cell[][] = [[]];
-
-    for (let i = 0; i < 8; i++) {
-      cells[i] = [];
-      for (let j = 0; j < 8; j++) {
-        cells[i].push(new Cell(INITIAL_PIECE_MAP[i][j]));
-      }
-    }
-
-    return cells;
+  private initBoardState() {
+    return INITIAL_PIECE_MAP;
   }
 
   getKingPosition(color: 'black' | 'white') {
@@ -44,7 +35,7 @@ export class Board {
 
     for (let i = 0; i < 8; i++) {
       for (let j = 0; j < 8; j++) {
-        if (this.state[i][j].piece?.type === 'king' && this.state[i][j].piece?.color === color) {
+        if (this.state[i][j]?.type === 'king' && this.state[i][j]?.color === color) {
           this.kingPosition[color] = { x: i, y: j };
           return { x: i, y: j };
         }
@@ -61,21 +52,21 @@ export class Board {
     }
 
     const newBoard = new Board(cloneDeep(this.state), this.isAITurn);
-    const piece = newBoard.state[currentPosition.x][currentPosition.y].piece;
+    const piece = newBoard.state[currentPosition.x][currentPosition.y];
     let threats = 0;
     if (!piece) {
       return threats;
     }
-    newBoard.state[movePosition.x][movePosition.y].piece = piece;
-    newBoard.state[currentPosition.x][currentPosition.y].piece = null;
+    newBoard.state[movePosition.x][movePosition.y] = piece;
+    newBoard.state[currentPosition.x][currentPosition.y] = null;
     for (let i = 0; i < 8; i++) {
       for (let j = 0; j < 8; j++) {
-        const enemyPiece = newBoard.state[i][j].piece;
+        const enemyPiece = newBoard.state[i][j];
         // check if it is enemyPiece
         if (enemyPiece && piece.color !== enemyPiece.color) {
           for (let k = 0; k < 8; k++) {
             for (let l = 0; l < 8; l++) {
-              const ourPiece = newBoard.state[k][l].piece;
+              const ourPiece = newBoard.state[k][l];
               //
               if (ourPiece) {
                 if (piece.color !== ourPiece.color) {
@@ -106,7 +97,7 @@ export class Board {
     let distance = 8;
     for (let i = 0; i < 8; i++) {
       for (let j = 0; j < 8; j++) {
-        const piece = this.state[i][j].piece;
+        const piece = this.state[i][j];
         if (piece && piece.color === oppositionColor) {
           const nextDistance = Math.sqrt(
             Math.pow(Math.abs(i - position.x), 2) + Math.pow(Math.abs(j - position.y), 2),
@@ -119,9 +110,8 @@ export class Board {
   }
 
   move({ currentPosition, movePosition }: Move) {
-    this.state[movePosition.x][movePosition.y].piece =
-      this.state[currentPosition.x][currentPosition.y].piece;
-    this.state[currentPosition.x][currentPosition.y].piece = null;
+    this.state[movePosition.x][movePosition.y] = this.state[currentPosition.x][currentPosition.y];
+    this.state[currentPosition.x][currentPosition.y] = null;
     this.state = cloneDeep(this.state);
     this.isAITurn = !this.isAITurn;
     this.threatsMap = this.initThreatsMap();
@@ -129,15 +119,15 @@ export class Board {
   }
 
   public isCheckOnMove(currentPosition: Position, movePosition: Position, board: Board) {
-    const piece = board.state[currentPosition.x][currentPosition.y].piece;
+    const piece = board.state[currentPosition.x][currentPosition.y];
     if (piece) {
       const { x: kingX, y: kingY } =
         board.kingPosition[piece.color] ?? board.getKingPosition(piece.color) ?? {};
       if (kingX !== undefined && kingY !== undefined) {
-        const king: King = board.state[kingX][kingY].piece as King;
+        const king: King = board.state[kingX][kingY] as King;
         const updatedBoard = new Board(cloneDeep(board.state), board.isAITurn);
-        updatedBoard.state[movePosition.x][movePosition.y].piece = piece;
-        updatedBoard.state[currentPosition.x][currentPosition.y].piece = null;
+        updatedBoard.state[movePosition.x][movePosition.y] = piece;
+        updatedBoard.state[currentPosition.x][currentPosition.y] = null;
         return king.isCheckInPosition(currentPosition, currentPosition, updatedBoard);
       }
     }

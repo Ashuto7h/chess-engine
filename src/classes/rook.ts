@@ -15,7 +15,7 @@ export class Rook extends Piece {
 
     // Check right movement
     for (let y = currentY + 1; y < 8; y++) {
-      const piece = board.state[currentX][y].piece;
+      const piece = board.state[currentX][y];
       const movePosition = { x: currentX, y };
       const score = this.calculateMoveScore(currentPosition, movePosition, board);
       if (piece) {
@@ -29,7 +29,7 @@ export class Rook extends Piece {
 
     // check left movement
     for (let y = currentY - 1; y >= 0; y--) {
-      const piece = board.state[currentX][y].piece;
+      const piece = board.state[currentX][y];
       const movePosition = { x: currentX, y };
       const score = this.calculateMoveScore(currentPosition, movePosition, board);
       if (piece) {
@@ -43,7 +43,7 @@ export class Rook extends Piece {
 
     // Check down movement
     for (let x = currentX + 1; x < 8; x++) {
-      const piece = board.state[x][currentY].piece;
+      const piece = board.state[x][currentY];
       const movePosition = { x, y: currentY };
       const score = this.calculateMoveScore(currentPosition, movePosition, board);
       if (piece) {
@@ -57,7 +57,7 @@ export class Rook extends Piece {
 
     // check up movement
     for (let x = currentX - 1; x >= 0; x--) {
-      const piece = board.state[x][currentY].piece;
+      const piece = board.state[x][currentY];
       const movePosition = { x, y: currentY };
       const score = this.calculateMoveScore(currentPosition, movePosition, board);
       if (piece) {
@@ -75,8 +75,8 @@ export class Rook extends Piece {
   calculateMoveScore(currentPosition: Position, movePosition: Position, board: Board) {
     let score = 0;
     const oppositionColor = this.color === 'white' ? 'black' : 'white';
-    const cell = board.state[movePosition.x][movePosition.y];
-    const type = cell.piece?.type;
+    const piece = board.state[movePosition.x][movePosition.y];
+    const type = piece?.type;
     const oppositeKingPosition = board.getKingPosition(oppositionColor);
 
     if (type) {
@@ -116,7 +116,7 @@ export class Rook extends Piece {
         isRightMove ? col < moveY : col > moveY;
         col += isRightMove ? 1 : -1
       ) {
-        if (state[x][col].piece) {
+        if (state[x][col]) {
           return false;
         }
       }
@@ -127,7 +127,7 @@ export class Rook extends Piece {
         isUpwardMove ? row > moveX : row < moveX;
         row += isUpwardMove ? -1 : 1
       ) {
-        if (state[row][y].piece) {
+        if (state[row][y]) {
           return false;
         }
       }

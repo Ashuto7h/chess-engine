@@ -16,7 +16,7 @@ export class Bishop extends Piece {
     // Check diagonally downward and to the right
     for (let x = currentX + 1, y = currentY + 1; x < 8 && y < 8; x++, y++) {
       const movePosition = { x, y };
-      const piece = board.state[x][y].piece;
+      const piece = board.state[x][y];
       const score = this.calculateMoveScore(currentPosition, movePosition, board);
       if (piece) {
         if (this.isEnemyPiece(piece)) {
@@ -30,7 +30,7 @@ export class Bishop extends Piece {
     // Check diagonally downward and to the left
     for (let x = currentX + 1, y = currentY - 1; x < 8 && y >= 0; x++, y--) {
       const movePosition = { x, y };
-      const piece = board.state[x][y].piece;
+      const piece = board.state[x][y];
       const score = this.calculateMoveScore(currentPosition, movePosition, board);
       if (piece) {
         if (this.isEnemyPiece(piece)) {
@@ -43,7 +43,7 @@ export class Bishop extends Piece {
 
     // Check diagonally upward and to the right
     for (let x = currentX - 1, y = currentY + 1; x >= 0 && y < 8; x--, y++) {
-      const piece = board.state[x][y].piece;
+      const piece = board.state[x][y];
       const movePosition = { x, y };
       const score = this.calculateMoveScore(currentPosition, movePosition, board);
       if (piece) {
@@ -58,7 +58,7 @@ export class Bishop extends Piece {
     // Check diagonally upward and to the left
     for (let x = currentX - 1, y = currentY - 1; x >= 0 && y >= 0; x--, y--) {
       const movePosition = { x, y };
-      const piece = board.state[x][y].piece;
+      const piece = board.state[x][y];
       const score = this.calculateMoveScore(currentPosition, movePosition, board);
       if (piece) {
         if (this.isEnemyPiece(piece)) {
@@ -87,7 +87,7 @@ export class Bishop extends Piece {
         x !== moveX && y !== moveY;
         x += xDirection, y += yDirection
       ) {
-        if (board.state[x][y].piece) {
+        if (board.state[x][y]) {
           return false;
         }
       }
@@ -99,7 +99,7 @@ export class Bishop extends Piece {
   calculateMoveScore(currentPosition: Position, movePosition: Position, board: Board): number {
     let score = 0;
     const oppositionColor = this.color === 'white' ? 'black' : 'white';
-    const targetPiece = board.state[movePosition.x][movePosition.y].piece;
+    const targetPiece = board.state[movePosition.x][movePosition.y];
     const oppositeKingPosition = board.getKingPosition(oppositionColor);
 
     if (targetPiece) {

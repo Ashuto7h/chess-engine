@@ -10,7 +10,7 @@ export const useGameBoard = (board: Board) => {
   const [isLoading, setIsLoading] = useState(false);
   const [debug, setDebug] = useState(false);
   const selectedPiece = selectedPosition
-    ? board.state[selectedPosition.x][selectedPosition.y].piece
+    ? board.state[selectedPosition.x][selectedPosition.y]
     : null;
 
   const playAsAI = useCallback(() => {
@@ -18,7 +18,7 @@ export const useGameBoard = (board: Board) => {
       const moves: Move[] = [];
       for (let i = 0; i < 8; i++) {
         for (let j = 0; j < 8; j++) {
-          const piece = board.state[i][j].piece;
+          const piece = board.state[i][j];
           if (piece && piece.color === 'black') {
             moves.push(...piece.getValidMoves({ x: i, y: j }, board));
           }

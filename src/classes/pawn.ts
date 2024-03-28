@@ -19,21 +19,21 @@ export class Pawn extends Piece {
     const moveX = currentX + (this.color === 'white' ? -1 : 1);
     const oneStepForwardPosition = { x: moveX, y: currentY };
 
-    if (!board.state[oneStepForwardPosition.x][oneStepForwardPosition.y].piece) {
+    if (!board.state[oneStepForwardPosition.x][oneStepForwardPosition.y]) {
       this.addValidMove(currentPosition, oneStepForwardPosition, board);
     }
 
     // Check if pawn can move two steps forward
     if (
       currentX === (this.color === 'white' ? 6 : 1) &&
-      !board.state[currentX + (this.color === 'white' ? -1 : 1)][currentY].piece
+      !board.state[currentX + (this.color === 'white' ? -1 : 1)][currentY]
     ) {
       const twoStepsForwardPosition = {
         x: currentX + (this.color === 'white' ? -2 : 2),
         y: currentY,
       };
 
-      if (!board.state[twoStepsForwardPosition.x][twoStepsForwardPosition.y].piece) {
+      if (!board.state[twoStepsForwardPosition.x][twoStepsForwardPosition.y]) {
         this.addValidMove(currentPosition, twoStepsForwardPosition, board);
       }
     }
@@ -54,7 +54,7 @@ export class Pawn extends Piece {
       if (movePosition.y === 8 || movePosition.y === -1) {
         return;
       }
-      const piece = board.state[movePosition.x][movePosition.y].piece;
+      const piece = board.state[movePosition.x][movePosition.y];
       if (piece && this.isEnemyPiece(piece)) {
         this.addValidMove(currentPosition, movePosition, board);
       }
@@ -66,7 +66,7 @@ export class Pawn extends Piece {
   canMoveToPosition(currentPosition: Position, movePosition: Position, board: Board): boolean {
     const { x: currentX, y: currentY } = currentPosition;
     const { x: moveX, y: moveY } = movePosition;
-    const piece = board.state[moveX][moveY].piece;
+    const piece = board.state[moveX][moveY];
 
     if (moveY === currentY && Math.abs(moveY - currentY) === 1) {
       return !piece;
@@ -88,8 +88,8 @@ export class Pawn extends Piece {
   calculateMoveScore(currentPosition: Position, movePosition: Position, board: Board): number {
     let score = 0;
     const oppositionColor = this.color === 'white' ? 'black' : 'white';
-    const cell = board.state[movePosition.x][movePosition.y];
-    const type = cell.piece?.type;
+    const piece = board.state[movePosition.x][movePosition.y];
+    const type = piece?.type;
     const oppositeKingPosition = board.getKingPosition(oppositionColor);
 
     if (type) {

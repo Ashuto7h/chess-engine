@@ -20,7 +20,7 @@ export function GameBoard({ board }: GameBoardProps) {
       {Array.from({ length: 8 }).map((_, i) => (
         <Row key={i + (board.isAITurn ? 'true' : 'false')}>
           {Array.from({ length: 8 }).map((_, j) => {
-            const piece = board.state[i][j].piece;
+            const piece = board.state[i][j];
             const icon = piece ? PIECE_ICON_MAP[piece.color][piece.type] : '';
             const highlight = highlightMoves.find(
               ({ movePosition }) => movePosition.x === i && movePosition.y === j,

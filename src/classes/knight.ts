@@ -28,7 +28,7 @@ export class Knight extends Piece {
       const x = currentX + move[0];
       const y = currentY + move[1];
       if (x >= 0 && x < 8 && y >= 0 && y < 8) {
-        const piece = board.state[x][y].piece;
+        const piece = board.state[x][y];
         const movePosition = { x, y };
         console.log(piece?.id, piece?.color, this.color);
         if (!piece || piece.color !== this.color) {
@@ -49,7 +49,7 @@ export class Knight extends Piece {
 
     const dx = Math.abs(moveX - currentX);
     const dy = Math.abs(moveY - currentY);
-    const piece = board.state[moveX][moveY].piece;
+    const piece = board.state[moveX][moveY];
     return (
       ((dx === 2 && dy === 1) || (dx === 1 && dy === 2)) && (!piece || this.isEnemyPiece(piece))
     );
@@ -57,7 +57,7 @@ export class Knight extends Piece {
 
   calculateMoveScore(currentPosition: Position, movePosition: Position, board: Board): number {
     const { x: moveX, y: moveY } = movePosition;
-    const targetPiece = board.state[moveX][moveY].piece;
+    const targetPiece = board.state[moveX][moveY];
     const oppositeKingPosition = board.getKingPosition(this.color === 'white' ? 'black' : 'white');
     let score = 0;
 
