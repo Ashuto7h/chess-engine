@@ -8,11 +8,20 @@ interface GameBoardProps {
   board: Board;
 }
 export function GameBoard({ board }: GameBoardProps) {
-  const { debug, handleOnDebugChange, isLoading, handleClick, highlightMoves, selectedPiece } =
-    useGameBoard(board);
+  const {
+    debug,
+    handleClick,
+    handleOnDebugChange,
+    handleUndoClick,
+    highlightMoves,
+    isLoading,
+    selectedPiece,
+    startNewGame,
+  } = useGameBoard(board);
 
   return (
-    <div>
+    <div id="board" tabIndex={0} onKeyDown={handleUndoClick}>
+      <button onClick={startNewGame}>New Game</button>
       <div>
         debug: <input type="checkbox" checked={debug} onChange={handleOnDebugChange} />
       </div>{' '}
@@ -34,7 +43,7 @@ export function GameBoard({ board }: GameBoardProps) {
                 <div
                   className={clsx(
                     (i + j) % 2 ? 'black' : 'white',
-                    icon && piece?.color === 'white' && 'pointer',
+                    icon && piece?.color === 'white' && !isLoading && 'pointer',
                     highlight && 'highlight',
                     piece && selectedPiece && piece.id === selectedPiece.id && 'selected',
                   )}

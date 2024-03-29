@@ -6,7 +6,6 @@ import { Board } from './board';
 import { Piece } from './piece';
 
 export class Pawn extends Piece {
-  i = 0;
   validMoves: Move[] = [];
 
   constructor(id: PieceId, color: 'white' | 'black') {

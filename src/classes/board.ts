@@ -17,24 +17,34 @@ import { Rook } from './rook';
 export class Board {
   state: (Piece | null)[][];
   threatsMap: number[][][][];
-  kingPosition: { white: Position | undefined; black: Position | undefined };
+  kingPosition: { white: Position | undefined; black: Position | undefined } = {
+    white: undefined,
+    black: undefined,
+  };
   movesHistory: MoveHistory[] = [];
 
   constructor(state?: (Piece | null)[][], public isAITurn = false) {
-    this.state = state ?? this.initBoardState();
+    this.state = state ?? cloneDeep(INITIAL_PIECE_MAP);
     this.threatsMap = this.initThreatsMap();
-    this.kingPosition = { white: { x: 7, y: 3 }, black: { x: 0, y: 4 } };
+    this.kingPosition = {
+      white: this.getKingPosition('white'),
+      black: this.getKingPosition('black'),
+    };
   }
 
-  private initThreatsMap = () =>
-    Array.from({ length: 8 }, () =>
-      Array.from({ length: 8 }, () =>
-        Array.from({ length: 8 }, () => Array.from({ length: 8 }, () => Infinity)),
-      ),
-    );
-
-  private initBoardState() {
-    return INITIAL_PIECE_MAP;
+  public async initBoardState() {
+    let cursor = await this.getMoveCursor('next');
+    while (cursor) {
+      const move = cursor.value as MoveHistory;
+      this.state[move.movePosition.x][move.movePosition.y] =
+        this.state[move.currentPosition.x][move.currentPosition.y];
+      this.state[move.currentPosition.x][move.currentPosition.y] = null;
+      cursor = await cursor.continue();
+      console.log('inter');
+      console.table(this.logState());
+    }
+    // this.state = cloneDeep(this.state);
+    console.log('final', this.state);
   }
 
   getKingPosition(color: 'black' | 'white') {
@@ -118,6 +128,32 @@ export class Board {
     return distance;
   }
 
+  async newGame() {
+    if (!('indexedDB' in window)) {
+      console.error("This browser doesn't support IndexedDB");
+      return;
+    }
+    await openDB('chess', Date.now(), {
+      upgrade: (db) => {
+        if (!db.objectStoreNames.contains('movesHistory')) {
+          db.createObjectStore('movesHistory', { keyPath: 'id', autoIncrement: true });
+        } else {
+          db.deleteObjectStore('movesHistory');
+          db.createObjectStore('movesHistory', { keyPath: 'id', autoIncrement: true });
+        }
+      },
+    });
+
+    console.table(this.logState());
+    this.state = cloneDeep(INITIAL_PIECE_MAP);
+    this.threatsMap = this.initThreatsMap();
+    this.kingPosition = {
+      white: undefined,
+      black: undefined,
+    };
+    console.table(this.logState());
+  }
+
   async move({ currentPosition, movePosition }: Move) {
     const currentPiece = this.state[currentPosition.x][currentPosition.y];
     const movePiece = this.state[movePosition.x][movePosition.y];
@@ -153,7 +189,7 @@ export class Board {
   }
 
   public async undoLastMove() {
-    const lastMoveCursor = await this.getLastMoveCursor();
+    const lastMoveCursor = await this.getMoveCursor('prev');
     if (lastMoveCursor) {
       const { movePosition, currentPosition, currentPiece, movePiece } = lastMoveCursor.value;
       this.state[currentPosition.x][currentPosition.y] = this.createPiece(currentPiece);
@@ -243,7 +279,7 @@ export class Board {
       return;
     }
 
-    const db = await openDB('chess', 1, {
+    const db = await openDB('chess', undefined, {
       upgrade: (db) => {
         if (!db.objectStoreNames.contains('movesHistory')) {
           db.createObjectStore('movesHistory', { keyPath: 'id', autoIncrement: true });
@@ -268,14 +304,25 @@ export class Board {
     ]);
   }
 
-  private async getLastMoveCursor() {
+  private async getMoveCursor(direction: 'next' | 'prev') {
     const transaction = await this.getDbTransaction();
 
     if (!transaction) {
       return;
     }
 
-    const cursor = await transaction.store.openCursor(null, 'prev');
+    const cursor = await transaction.store.openCursor(null, direction);
     return cursor;
   }
+
+  private initThreatsMap = () =>
+    Array.from({ length: 8 }, () =>
+      Array.from({ length: 8 }, () =>
+        Array.from({ length: 8 }, () => Array.from({ length: 8 }, () => Infinity)),
+      ),
+    );
+
+  logState = () => {
+    return this.state.map((row) => row.map((item) => item?.id ?? '0'));
+  };
 }

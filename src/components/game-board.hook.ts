@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Piece } from '../classes/piece';
 import { Move } from '../interfaces/move';
 import { Position } from '../interfaces/position';
 import { Board } from '../classes/board';
+import { KeyboardEventHandler } from 'react';
 
 export const useGameBoard = (board: Board) => {
   const [highlightMoves, setHighlightMoves] = useState<Move[]>([]);
@@ -12,8 +13,11 @@ export const useGameBoard = (board: Board) => {
   const selectedPiece = selectedPosition
     ? board.state[selectedPosition.x][selectedPosition.y]
     : null;
+  const isMounted = useRef(false);
 
   const playAsAI = useCallback(() => {
+    console.log('calling playAsAI');
+    setIsLoading(true);
     setTimeout(async () => {
       const moves: Move[] = [];
       for (let i = 0; i < 8; i++) {
@@ -26,19 +30,32 @@ export const useGameBoard = (board: Board) => {
       }
 
       moves.sort((a, b) => b.score - a.score);
-      console.log('bestMoves: ', moves.slice(0, 3));
       await board.move(moves[0]);
       setIsLoading(false);
     }, 1000);
+  }, [board]);
+
+  useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true;
+      console.log('calling useEffect to initBoard');
+      const initBoard = async () => {
+        setIsLoading(true);
+        await board.initBoardState();
+        setIsLoading(false);
+      };
+      initBoard();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
+    console.log('calling 2nd effect for ai');
     if (!board.isAITurn) {
       return;
     }
 
     if (!debug) {
-      setIsLoading(true);
       playAsAI();
     }
   }, [board, board.isAITurn, debug, playAsAI]);
@@ -83,5 +100,31 @@ export const useGameBoard = (board: Board) => {
     setHighlightMoves([]);
   };
 
-  return { isLoading, debug, handleClick, handleOnDebugChange, highlightMoves, selectedPiece };
+  const handleUndoClick: KeyboardEventHandler<HTMLDivElement> = async (event) => {
+    if (event.ctrlKey && (event.key === 'z' || event.key === 'Z')) {
+      await board.undoLastMove();
+      await board.undoLastMove();
+      setSelectedPosition(null);
+      setHighlightMoves([]);
+    }
+  };
+
+  const startNewGame = async () => {
+    setIsLoading(true);
+    await board.newGame();
+    setIsLoading(false);
+    setSelectedPosition(null);
+    setHighlightMoves([]);
+  };
+
+  return {
+    isLoading,
+    debug,
+    handleClick,
+    handleOnDebugChange,
+    highlightMoves,
+    selectedPiece,
+    handleUndoClick,
+    startNewGame,
+  };
 };
