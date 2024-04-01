@@ -21,10 +21,18 @@ export function GameBoard({ board }: GameBoardProps) {
 
   return (
     <div id="board" tabIndex={0} onKeyDown={handleUndoClick}>
-      <button onClick={startNewGame}>New Game</button>
-      <div>
-        debug: <input type="checkbox" checked={debug} onChange={handleOnDebugChange} />
-      </div>{' '}
+      <Row>
+        <Col>Undo (CTRL + Z) </Col>
+        <Col>
+          <button onClick={startNewGame}>New Game</button>
+        </Col>
+        <Col>
+          {' '}
+          <span>
+            debug: <input type="checkbox" checked={debug} onChange={handleOnDebugChange} />
+          </span>{' '}
+        </Col>
+      </Row>
       {board.isAITurn ? 'AI TURN' : 'YOUR TURN'} {isLoading && '| LOADING...'}
       {Array.from({ length: 8 }).map((_, i) => (
         <Row key={i + (board.isAITurn ? 'true' : 'false')}>

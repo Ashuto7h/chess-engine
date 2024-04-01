@@ -157,6 +157,7 @@ export class Board {
   async move({ currentPosition, movePosition }: Move) {
     const currentPiece = this.state[currentPosition.x][currentPosition.y];
     const movePiece = this.state[movePosition.x][movePosition.y];
+    console.log('move', { currentPiece, movePiece });
     await this.saveHistory({
       currentPosition,
       movePosition,
@@ -182,7 +183,7 @@ export class Board {
         const updatedBoard = new Board(cloneDeep(board.state), board.isAITurn);
         updatedBoard.state[movePosition.x][movePosition.y] = piece;
         updatedBoard.state[currentPosition.x][currentPosition.y] = null;
-        return king.isCheckInPosition(currentPosition, currentPosition, updatedBoard);
+        return king.isCheckInPosition({ x: kingX, y: kingY }, updatedBoard);
       }
     }
     return false;
@@ -289,9 +290,12 @@ export class Board {
     return db.transaction('movesHistory', 'readwrite');
   }
 
-  private async saveHistory({ currentPosition, movePosition }: MoveHistory) {
-    const piece = this.state[movePosition.x][movePosition.y]?.id;
-
+  private async saveHistory({
+    currentPosition,
+    movePosition,
+    currentPiece,
+    movePiece,
+  }: MoveHistory) {
     const transaction = await this.getDbTransaction();
 
     if (!transaction) {
@@ -299,7 +303,7 @@ export class Board {
     }
 
     await Promise.all([
-      await transaction.store.add({ currentPosition, movePosition, piece }),
+      await transaction.store.add({ currentPosition, movePosition, currentPiece, movePiece }),
       transaction.done,
     ]);
   }

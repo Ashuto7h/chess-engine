@@ -16,7 +16,6 @@ export const useGameBoard = (board: Board) => {
   const isMounted = useRef(false);
 
   const playAsAI = useCallback(() => {
-    console.log('calling playAsAI');
     setIsLoading(true);
     setTimeout(async () => {
       const moves: Move[] = [];
@@ -28,9 +27,13 @@ export const useGameBoard = (board: Board) => {
           }
         }
       }
-
-      moves.sort((a, b) => b.score - a.score);
-      await board.move(moves[0]);
+      if (!moves.length) {
+        alert('CheckMate. You won!');
+        setIsLoading(false);
+        return;
+      }
+      const bestMove = moves.reduce((a, b) => (a.score > b.score ? a : b));
+      await board.move(bestMove);
       setIsLoading(false);
     }, 1000);
   }, [board]);
@@ -38,7 +41,6 @@ export const useGameBoard = (board: Board) => {
   useEffect(() => {
     if (!isMounted.current) {
       isMounted.current = true;
-      console.log('calling useEffect to initBoard');
       const initBoard = async () => {
         setIsLoading(true);
         await board.initBoardState();
@@ -50,8 +52,23 @@ export const useGameBoard = (board: Board) => {
   }, []);
 
   useEffect(() => {
-    console.log('calling 2nd effect for ai');
     if (!board.isAITurn) {
+      const moves = [];
+      for (let i = 0; i < 8; i++) {
+        for (let j = 0; j < 8; j++) {
+          const piece = board.state[i][j];
+          if (piece && piece.color === 'white') {
+            moves.push(...piece.getValidMoves({ x: i, y: j }, board));
+            break;
+          }
+        }
+        if (moves.length) {
+          break;
+        }
+      }
+      if (!moves.length) {
+        alert('CheckMate. You Lose!');
+      }
       return;
     }
 

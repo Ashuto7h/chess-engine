@@ -6,71 +6,68 @@ import { SCORE_MAP } from '../constants/score-card';
 import { PieceId } from '../enums/piece-id.enum';
 
 export class Bishop extends Piece {
+  validMoves: Move[] = [];
   constructor(public id: PieceId, public color: 'white' | 'black') {
     super(id, color, 'bishop');
   }
 
   getValidMoves(currentPosition: Position, board: Board): Move[] {
     const { x: currentX, y: currentY } = currentPosition;
-    const validMoves: Move[] = [];
+    this.validMoves = [];
 
     // Check diagonally downward and to the right
     for (let x = currentX + 1, y = currentY + 1; x < 8 && y < 8; x++, y++) {
       const movePosition = { x, y };
       const piece = board.state[x][y];
-      const score = this.calculateMoveScore(currentPosition, movePosition, board);
       if (piece) {
         if (this.isEnemyPiece(piece)) {
-          validMoves.push({ currentPosition, movePosition, score });
+          this.addValidMove(currentPosition, movePosition, board);
         }
         break;
       }
-      validMoves.push({ currentPosition, movePosition, score });
+      this.addValidMove(currentPosition, movePosition, board);
     }
 
     // Check diagonally downward and to the left
     for (let x = currentX + 1, y = currentY - 1; x < 8 && y >= 0; x++, y--) {
       const movePosition = { x, y };
       const piece = board.state[x][y];
-      const score = this.calculateMoveScore(currentPosition, movePosition, board);
       if (piece) {
         if (this.isEnemyPiece(piece)) {
-          validMoves.push({ currentPosition, movePosition, score });
+          this.addValidMove(currentPosition, movePosition, board);
         }
         break;
       }
-      validMoves.push({ currentPosition, movePosition, score });
+      this.addValidMove(currentPosition, movePosition, board);
     }
 
     // Check diagonally upward and to the right
     for (let x = currentX - 1, y = currentY + 1; x >= 0 && y < 8; x--, y++) {
       const piece = board.state[x][y];
       const movePosition = { x, y };
-      const score = this.calculateMoveScore(currentPosition, movePosition, board);
       if (piece) {
         if (this.isEnemyPiece(piece)) {
-          validMoves.push({ currentPosition, movePosition, score });
+          this.addValidMove(currentPosition, movePosition, board);
         }
         break;
       }
-      validMoves.push({ currentPosition, movePosition, score });
+      this.addValidMove(currentPosition, movePosition, board);
     }
 
     // Check diagonally upward and to the left
     for (let x = currentX - 1, y = currentY - 1; x >= 0 && y >= 0; x--, y--) {
       const movePosition = { x, y };
       const piece = board.state[x][y];
-      const score = this.calculateMoveScore(currentPosition, movePosition, board);
       if (piece) {
         if (this.isEnemyPiece(piece)) {
-          validMoves.push({ currentPosition, movePosition, score });
+          this.addValidMove(currentPosition, movePosition, board);
         }
         break;
       }
-      validMoves.push({ currentPosition, movePosition, score });
+      this.addValidMove(currentPosition, movePosition, board);
     }
 
-    return validMoves;
+    return this.validMoves;
   }
 
   canMoveToPosition(currentPosition: Position, movePosition: Position, board: Board): boolean {
@@ -117,5 +114,15 @@ export class Bishop extends Piece {
     score -= board.getThreats(currentPosition, movePosition);
     score -= board.getNearestPieceDistance(movePosition, oppositionColor);
     return parseFloat(score.toFixed(2));
+  }
+
+  private addValidMove(currentPosition: Position, movePosition: Position, board: Board) {
+    if (!board.isCheckOnMove(currentPosition, movePosition, board)) {
+      this.validMoves.push({
+        currentPosition,
+        movePosition: movePosition,
+        score: this.calculateMoveScore(currentPosition, movePosition, board),
+      });
+    }
   }
 }

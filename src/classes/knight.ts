@@ -6,13 +6,14 @@ import { Board } from './board';
 import { Piece } from './piece';
 
 export class Knight extends Piece {
+  validMoves: Move[] = [];
   constructor(public id: PieceId, public color: 'white' | 'black') {
     super(id, color, 'knight');
   }
 
   getValidMoves(currentPosition: Position, board: Board): Move[] {
     const { x: currentX, y: currentY } = currentPosition;
-    const validMoves: Move[] = [];
+    this.validMoves = [];
 
     const movements: Array<[number, number]> = [
       [1, 2],
@@ -31,19 +32,15 @@ export class Knight extends Piece {
       if (x >= 0 && x < 8 && y >= 0 && y < 8) {
         const piece = board.state[x][y];
         const movePosition = { x, y };
-        console.log(piece?.id, piece?.color, this.color);
         if (!piece || piece.color !== this.color) {
-          validMoves.push({
-            currentPosition,
-            movePosition,
-            score: this.calculateMoveScore(currentPosition, movePosition, board),
-          });
+          this.addValidMove(currentPosition, movePosition, board);
         }
       }
     });
 
-    return validMoves;
+    return this.validMoves;
   }
+
   canMoveToPosition(currentPosition: Position, movePosition: Position, board: Board): boolean {
     const { x: currentX, y: currentY } = currentPosition;
     const { x: moveX, y: moveY } = movePosition;
@@ -80,5 +77,14 @@ export class Knight extends Piece {
     );
 
     return parseFloat(score.toFixed(2));
+  }
+  private addValidMove(currentPosition: Position, movePosition: Position, board: Board) {
+    if (!board.isCheckOnMove(currentPosition, movePosition, board)) {
+      this.validMoves.push({
+        currentPosition,
+        movePosition: movePosition,
+        score: this.calculateMoveScore(currentPosition, movePosition, board),
+      });
+    }
   }
 }

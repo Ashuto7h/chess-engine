@@ -4,15 +4,17 @@ import { Move } from '../interfaces/move';
 import { Position } from '../interfaces/position';
 import { Board } from './board';
 import { Piece } from './piece';
+import { PieceId } from '../enums/piece-id.enum';
 
 export class King extends Piece {
-  constructor(id: string, color: 'white' | 'black') {
+  validMoves: Move[] = [];
+  constructor(id: PieceId, color: 'white' | 'black') {
     super(id, color, 'king');
   }
 
   getValidMoves(currentPosition: Position, board: Board): Move[] {
     const { x: currentX, y: currentY } = currentPosition;
-    const validMoves: Move[] = [];
+    this.validMoves = [];
 
     const moves: Array<[number, number]> = [
       [1, 0], // right
@@ -32,15 +34,14 @@ export class King extends Piece {
         const movePosition = { x: moveX, y: moveY };
         const piece = board.state[moveX][moveY];
         if (!piece || this.isEnemyPiece(piece)) {
-          const score = this.calculateMoveScore(currentPosition, movePosition, board);
-          if (!this.isCheckInPosition(currentPosition, movePosition, board)) {
-            validMoves.push({ currentPosition, movePosition, score });
+          if (!this.isCheckInPosition(currentPosition, board, movePosition)) {
+            this.addValidMove(currentPosition, movePosition, board);
           }
         }
       }
     }
 
-    return validMoves;
+    return this.validMoves;
   }
   canMoveToPosition(currentPosition: Position, movePosition: Position, board: Board): boolean {
     const { x: currentX, y: currentY } = currentPosition;
@@ -63,7 +64,7 @@ export class King extends Piece {
     for (const [dX, dY] of moves) {
       const piece = board.state[moveX][moveY];
       if (dx === dX && dy === dY && (!piece || this.isEnemyPiece(piece))) {
-        return !this.isCheckInPosition(currentPosition, movePosition, board);
+        return !this.isCheckInPosition(currentPosition, board, movePosition);
       }
     }
 
@@ -93,11 +94,13 @@ export class King extends Piece {
     return parseFloat(score.toFixed(2));
   }
 
-  public isCheckInPosition(currentPosition: Position, movePosition: Position, board: Board) {
+  public isCheckInPosition(currentPosition: Position, board: Board, movePosition?: Position) {
     const updateBoard = new Board(cloneDeep(board.state), board.isAITurn);
-    updateBoard.state[movePosition.x][movePosition.y] =
-      updateBoard.state[currentPosition.x][currentPosition.y];
-    updateBoard.state[currentPosition.x][currentPosition.y] = null;
+    if (movePosition) {
+      updateBoard.state[movePosition.x][movePosition.y] =
+        updateBoard.state[currentPosition.x][currentPosition.y];
+      updateBoard.state[currentPosition.x][currentPosition.y] = null;
+    }
 
     for (let i = 0; i < 8; i++) {
       for (let j = 0; j < 8; j++) {
@@ -105,7 +108,7 @@ export class King extends Piece {
         if (piece && this.isEnemyPiece(piece)) {
           const canCapture = piece.canMoveToPosition(
             { x: i, y: j },
-            { x: movePosition.x, y: movePosition.y },
+            { x: movePosition?.x ?? currentPosition.x, y: movePosition?.y ?? currentPosition.y },
             updateBoard,
           );
           if (canCapture) {
@@ -115,5 +118,15 @@ export class King extends Piece {
       }
     }
     return false;
+  }
+
+  private addValidMove(currentPosition: Position, movePosition: Position, board: Board) {
+    if (!board.isCheckOnMove(currentPosition, movePosition, board)) {
+      this.validMoves.push({
+        currentPosition,
+        movePosition: movePosition,
+        score: this.calculateMoveScore(currentPosition, movePosition, board),
+      });
+    }
   }
 }

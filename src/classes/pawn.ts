@@ -55,6 +55,7 @@ export class Pawn extends Piece {
         return;
       }
       const piece = board.state[movePosition.x][movePosition.y];
+      console.log(piece, piece ? this.isEnemyPiece(piece) : false);
       if (piece && this.isEnemyPiece(piece)) {
         this.addValidMove(currentPosition, movePosition, board);
       }
