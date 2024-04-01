@@ -1,4 +1,3 @@
-import { Piece } from '../classes/piece';
 import { PieceId } from '../enums/piece-id.enum';
 import { Position } from './position';
 

@@ -34,6 +34,11 @@ export class King extends Piece {
         const movePosition = { x: moveX, y: moveY };
         const piece = board.state[moveX][moveY];
         if (!piece || this.isEnemyPiece(piece)) {
+          console.log({
+            movePosition,
+            isCheckInPosition: this.isCheckInPosition(currentPosition, board, movePosition),
+            isCheckOnMove: board.isCheckOnMove(currentPosition, movePosition, board),
+          });
           if (!this.isCheckInPosition(currentPosition, board, movePosition)) {
             this.addValidMove(currentPosition, movePosition, board);
           }
@@ -101,7 +106,7 @@ export class King extends Piece {
         updateBoard.state[currentPosition.x][currentPosition.y];
       updateBoard.state[currentPosition.x][currentPosition.y] = null;
     }
-
+    console.table(updateBoard.logState());
     for (let i = 0; i < 8; i++) {
       for (let j = 0; j < 8; j++) {
         const piece = updateBoard.state[i][j];
@@ -112,6 +117,7 @@ export class King extends Piece {
             updateBoard,
           );
           if (canCapture) {
+            console.log('capture by', piece.id);
             return true;
           }
         }

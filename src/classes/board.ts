@@ -165,7 +165,14 @@ export class Board {
       movePiece: movePiece?.id,
     });
 
-    this.state[movePosition.x][movePosition.y] = currentPiece;
+    if (currentPiece?.type === 'pawn' && (currentPiece as Pawn).isPromotable(movePosition.x)) {
+      this.state[movePosition.x][movePosition.y] = new Queen(
+        `white_queen_${Date.now() % 11}` as PieceId,
+        currentPiece.color,
+      );
+    } else {
+      this.state[movePosition.x][movePosition.y] = currentPiece;
+    }
     this.state[currentPosition.x][currentPosition.y] = null;
     this.state = cloneDeep(this.state);
     this.isAITurn = !this.isAITurn;
@@ -183,7 +190,13 @@ export class Board {
         const updatedBoard = new Board(cloneDeep(board.state), board.isAITurn);
         updatedBoard.state[movePosition.x][movePosition.y] = piece;
         updatedBoard.state[currentPosition.x][currentPosition.y] = null;
-        return king.isCheckInPosition({ x: kingX, y: kingY }, updatedBoard);
+        return king.isCheckInPosition(
+          {
+            x: piece.type === 'king' ? movePosition.x : kingX,
+            y: piece.type === 'king' ? movePosition.y : kingY,
+          },
+          updatedBoard,
+        );
       }
     }
     return false;

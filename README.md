@@ -147,3 +147,5 @@ some days wasted on fixing some more of the issues
 1. I found that **trial 1** is going to do too much computations which are making the browser to hang up and causing issues. So I am dropping that idea.
 
 ---
+
+pawn promotion error

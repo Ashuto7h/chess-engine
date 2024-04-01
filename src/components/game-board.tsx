@@ -42,7 +42,6 @@ export function GameBoard({ board }: GameBoardProps) {
             const highlight = highlightMoves.find(
               ({ movePosition }) => movePosition.x === i && movePosition.y === j,
             );
-
             return (
               <Col
                 className={clsx('cell', highlight && 'pad')}

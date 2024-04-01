@@ -117,6 +117,12 @@ export class Bishop extends Piece {
   }
 
   private addValidMove(currentPosition: Position, movePosition: Position, board: Board) {
+    console.log(
+      'bishop check on move ',
+      movePosition.x,
+      movePosition.y,
+      board.isCheckOnMove(currentPosition, movePosition, board),
+    );
     if (!board.isCheckOnMove(currentPosition, movePosition, board)) {
       this.validMoves.push({
         currentPosition,

@@ -16,13 +16,14 @@ export class Pawn extends Piece {
     this.validMoves = [];
     const { x: currentX, y: currentY } = currentPosition;
     // Check if pawn can move one step forward
-    const moveX = currentX + (this.color === 'white' ? -1 : 1);
-    const oneStepForwardPosition = { x: moveX, y: currentY };
+    if ((this.color === 'black' && currentX !== 7) || (this.color === 'white' && currentX !== 0)) {
+      const moveX = currentX + (this.color === 'white' ? -1 : 1);
+      const oneStepForwardPosition = { x: moveX, y: currentY };
 
-    if (!board.state[oneStepForwardPosition.x][oneStepForwardPosition.y]) {
-      this.addValidMove(currentPosition, oneStepForwardPosition, board);
+      if (!board.state[oneStepForwardPosition.x][oneStepForwardPosition.y]) {
+        this.addValidMove(currentPosition, oneStepForwardPosition, board);
+      }
     }
-
     // Check if pawn can move two steps forward
     if (
       currentX === (this.color === 'white' ? 6 : 1) &&
@@ -39,16 +40,19 @@ export class Pawn extends Piece {
     }
 
     // Check if pawn can capture diagonally
-    const diagonalsToCheck =
-      this.color === 'white'
-        ? [
-            { x: currentX - 1, y: currentY - 1 },
-            { x: currentX - 1, y: currentY + 1 },
-          ]
-        : [
-            { x: currentX + 1, y: currentY - 1 },
-            { x: currentX + 1, y: currentY + 1 },
-          ];
+    let diagonalsToCheck: Position[] = [];
+    if (this.color === 'white' && currentX > 0) {
+      diagonalsToCheck = [
+        { x: currentX - 1, y: currentY - 1 },
+        { x: currentX - 1, y: currentY + 1 },
+      ];
+    }
+    if (this.color === 'black' && currentX < 7) {
+      diagonalsToCheck = [
+        { x: currentX + 1, y: currentY - 1 },
+        { x: currentX + 1, y: currentY + 1 },
+      ];
+    }
 
     diagonalsToCheck.forEach((movePosition) => {
       if (movePosition.y === 8 || movePosition.y === -1) {
@@ -112,8 +116,8 @@ export class Pawn extends Piece {
     return parseFloat(score.toPrecision(2));
   }
 
-  private isPromotable(x: number) {
-    if ((this.color === 'white' && x === 7) || (this.color === 'black' && x === 0)) {
+  isPromotable(moveX: number) {
+    if ((this.color === 'white' && moveX === 0) || (this.color === 'black' && moveX === 7)) {
       return true;
     }
     return false;
